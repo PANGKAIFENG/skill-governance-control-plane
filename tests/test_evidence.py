@@ -209,7 +209,10 @@ def test_artifact_digest_rejects_fifo_and_socket_entries(tmp_path) -> None:
     with pytest.raises(UnsupportedArtifactTypeError, match="pipe"):
         artifact_digest(fifo_root)
 
-    with tempfile.TemporaryDirectory(prefix="skillctl-", dir="/private/tmp") as directory:
+    short_temp_root = Path("/private/tmp")
+    if not short_temp_root.is_dir():
+        short_temp_root = Path(tempfile.gettempdir())
+    with tempfile.TemporaryDirectory(prefix="skillctl-", dir=short_temp_root) as directory:
         socket_root = Path(directory)
         unix_socket = socket.socket(socket.AF_UNIX)
         try:
