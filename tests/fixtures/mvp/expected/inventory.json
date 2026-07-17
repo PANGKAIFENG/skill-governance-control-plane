@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "name": "canary-skill",
+      "source_path": "authority/canary-skill",
+      "has_skill_md": true,
+      "authority_class": "private"
+    }
+  ],
+  "conflicts": []
+}

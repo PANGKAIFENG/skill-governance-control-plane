@@ -1,0 +1,30 @@
+schema_version: "1.0"
+items:
+  - id: target-local-a
+    adapter_id: filesystem
+    protocol: filesystem
+    credential_ref: null
+    config:
+      root: /private/tmp/skill-governance-target-a
+    capabilities:
+      discover: supported
+      plan: supported
+      apply: supported
+      verify: supported
+      rollback: supported
+      bindings: supported
+      delete: unsupported
+  - id: target-local-b
+    adapter_id: filesystem
+    protocol: filesystem
+    credential_ref: null
+    config:
+      root: /private/tmp/skill-governance-target-b
+    capabilities:
+      discover: supported
+      plan: supported
+      apply: supported
+      verify: supported
+      rollback: supported
+      bindings: supported
+      delete: unsupported

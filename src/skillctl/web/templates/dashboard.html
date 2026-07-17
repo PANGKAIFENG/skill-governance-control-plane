@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}系统状态 | Skill 治理门户{% endblock %}
+{% block content %}
+  <div class="page-heading dashboard-heading">
+    <div><p class="eyebrow">只读控制面</p><h1>Skill 治理总览</h1></div>
+    {% if dashboard.generated_at %}<p class="timestamp">状态生成于 {{ dashboard.generated_at }}</p>{% endif %}
+  </div>
+
+  <section class="readiness-section" aria-label="Gate 1 至 Gate 4 状态">
+    <div class="section-heading readiness-heading">
+      <div><h2>生产准备门禁</h2><p>{{ readiness.overall_label }}</p></div>
+      <span>后续 Gate 状态不在本页结论范围内</span>
+    </div>
+    <div class="gate-grid">
+      {% for row in readiness.rows %}
+        <article class="gate-row gate-{{ row.status|lower }}">
+          <div class="gate-line"><strong>{{ row.gate }}</strong><span class="status status-{{ row.status|lower }}">{{ row.status }}</span></div>
+          <p>{{ row.title }}</p>
+          <small>{{ row.detail }}</small>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section projects-section" aria-labelledby="projects-title">
+    <div class="section-heading project-summary-heading">
+      <div><h2 id="projects-title">项目概况</h2><p>Profile 作为项目，Membership 决定项目资产</p></div>
+      <div class="summary-strip" aria-label="治理摘要">
+        <span><strong>{{ dashboard.projects|length }}</strong> 个项目</span>
+        <span><strong>{{ dashboard.asset_count }}</strong> 个资产</span>
+        <span><strong>{{ dashboard.target_count }}</strong> 个分发目标</span>
+        <span><strong class="tone-warning">{{ dashboard.drift_count }}</strong> 项漂移</span>
+      </div>
+    </div>
+
+    <div class="project-list">
+      {% for project in dashboard.projects %}
+        <article class="project-block">
+          <div class="project-header">
+            <div><h3>{{ project.name }}</h3><code>{{ project.id }}</code></div>
+            <div class="project-counts">
+              <span>{{ project.assets|length }} 个资产</span>
+              <span>{{ project.workspaces|length }} 个工作区</span>
+              {% if project.unbound_asset_count %}<span class="tone-warning">{{ project.unbound_asset_count }} 个资产未绑定工作区</span>{% endif %}
+            </div>
+          </div>
+
+          <div class="project-detail-grid">
+            <div class="asset-group">
+              <h4>项目资产</h4>
+              {% for asset in project.assets %}
+                <div class="asset-row">
+                  <div><strong>{{ asset.name }}</strong><code>{{ asset.id }}</code></div>
+                  <div class="asset-meta"><span>{{ asset.owner }}</span><span>{{ asset.visibility }}</span><code>{{ asset.revision }}</code></div>
+                </div>
+              {% else %}<p class="empty-copy">暂无项目资产</p>{% endfor %}
+            </div>
+
+            <div class="workspace-group">
+              <h4>Consumer 工作区与分发目标</h4>
+              {% for workspace in project.workspaces %}
+                <div class="workspace-row">
+                  <div class="workspace-name"><span>{{ workspace.consumer_type }}</span><code>{{ workspace.consumer_id }}</code></div>
+                  <div class="workspace-targets">
+                    {% for target in workspace.targets %}
+                      <span class="target-ref {% if not target.available %}target-missing{% endif %}">
+                        <code>{{ target.id }}</code>{% if not target.available %}<small>未找到目标</small>{% endif %}
+                      </span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% else %}<p class="empty-copy">尚未绑定 Consumer 工作区</p>{% endfor %}
+            </div>
+          </div>
+        </article>
+      {% else %}<div class="empty-band">尚未配置项目 Profile</div>{% endfor %}
+    </div>
+
+    {% if dashboard.unassigned_assets %}
+      <div class="unassigned-band">
+        <strong>未归属项目的资产</strong>
+        {% for asset in dashboard.unassigned_assets %}<code>{{ asset.id }}</code>{% endfor %}
+      </div>
+    {% endif %}
+    {% if dashboard.issue_count %}<p class="relationship-note">检测到 {{ dashboard.issue_count }} 项关系异常，已按只读方式保留并标记。</p>{% endif %}
+  </section>
+
+  <section class="section" aria-labelledby="targets-title">
+    <div class="section-heading"><h2 id="targets-title">分发目标健康度</h2><span>{{ dashboard.drift_count }} 项漂移</span></div>
+    <div class="table-shell">
+      <table class="data-table">
+        <thead><tr><th>目标</th><th>Adapter</th><th>协议</th><th>健康度</th><th>已观察 revision</th></tr></thead>
+        <tbody>
+          {% for target in dashboard.targets %}
+            <tr><td data-label="目标"><code>{{ target.id }}</code></td><td data-label="Adapter">{{ target.adapter_id }}</td><td data-label="协议">{{ target.protocol }}</td><td data-label="健康度"><span class="status status-{{ target.health }}">{{ target.health }}</span></td><td data-label="已观察 revision">{% for revision in target.observed %}<code>{{ revision }}</code>{% else %}尚未观察{% endfor %}</td></tr>
+          {% else %}<tr><td colspan="5">暂无分发目标</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="deployments-title">
+    <div class="section-heading"><h2 id="deployments-title">最近部署记录</h2><span>{{ dashboard.failed_deployment_count }} 次失败</span></div>
+    <div class="table-shell">
+      <table class="data-table">
+        <thead><tr><th>部署</th><th>计划</th><th>目标</th><th>结果</th><th>完成时间</th></tr></thead>
+        <tbody>
+          {% for deployment in dashboard.deployments %}
+            <tr><td data-label="部署"><code>{{ deployment.deployment_id }}</code></td><td data-label="计划"><a href="/plans/{{ deployment.plan_id }}"><code>{{ deployment.plan_id }}</code></a></td><td data-label="目标"><code>{{ deployment.target_id }}</code></td><td data-label="结果"><span class="status status-{{ deployment.result }}">{{ deployment.result }}</span></td><td data-label="完成时间">{{ deployment.finished_at }}</td></tr>
+          {% else %}<tr><td colspan="5">暂无部署记录</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

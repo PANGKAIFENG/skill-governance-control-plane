@@ -1,0 +1,9 @@
+schema_version: "1.0"
+items:
+  - id: observation-canary-local-a
+    target_id: target-local-a
+    asset_id: asset-canary
+    revision: revision-canary-1
+    checksum: sha256:canary
+    discovered_at: "2026-07-13T00:00:00Z"
+    evidence_refs: []

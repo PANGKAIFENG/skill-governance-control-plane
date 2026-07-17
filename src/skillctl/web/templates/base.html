@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Skill 治理门户{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/portal.css') }}">
+  </head>
+  <body data-page-id="{{ page_id }}">
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/">Skill 治理控制台</a>
+        <nav aria-label="主导航">
+          <a href="/" {% if page_id == 'inventory' %}aria-current="page"{% endif %}>Skill 资产</a>
+          <a href="/system" {% if page_id == 'system' %}aria-current="page"{% endif %}>系统状态</a>
+          <a href="/plans" {% if page_id == 'plans' %}aria-current="page"{% endif %}>计划与审批</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main-content" class="page">
+      {% if error_message %}
+        <section class="error-state" aria-labelledby="error-title">
+          <h1 id="error-title">{{ page_title }}</h1>
+          <p>{{ error_message }}</p>
+        </section>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

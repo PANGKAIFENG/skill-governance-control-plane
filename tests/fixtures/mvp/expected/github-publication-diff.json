@@ -1,0 +1,10 @@
+{
+  "target_id": "github-publication",
+  "repository": "example/governed-skill",
+  "repository_visibility": "public",
+  "asset_id": "asset-1",
+  "source_revision": "sha256:asset-1",
+  "action": "create",
+  "allowed": true,
+  "reasons": []
+}

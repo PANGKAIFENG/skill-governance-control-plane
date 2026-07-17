@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Plan {{ plan.id }} | Governance Portal{% endblock %}
+{% block content %}
+  <div class="page-heading plan-heading">
+    <div><p class="eyebrow">Plan review</p><h1>{{ plan.id }}</h1><p>{{ plan.operation }} to <code>{{ plan.target_id }}</code></p></div>
+    <span class="status status-{{ plan.risk }}">{{ plan.risk }} risk</span>
+  </div>
+
+  <section class="section" aria-labelledby="policy-title">
+    <div class="section-heading"><h2 id="policy-title">Policy</h2><span>{{ plan.policy_decision }}</span></div>
+    <ul class="reason-list">{% for reason in plan.policy_reasons %}<li>{{ reason }}</li>{% else %}<li>No policy reasons</li>{% endfor %}</ul>
+  </section>
+
+  <section class="section" aria-labelledby="digest-title">
+    <div class="section-heading"><h2 id="digest-title">Integrity</h2></div>
+    <dl class="digest-list">
+      <div><dt>Plan digest</dt><dd><code>{{ plan.plan_digest }}</code></dd></div>
+      <div><dt>Source state</dt><dd><code>{{ plan.source_state_digest }}</code></dd></div>
+      <div><dt>Desired state</dt><dd><code>{{ plan.desired_state_digest }}</code></dd></div>
+      <div><dt>Observed state</dt><dd><code>{{ plan.observed_state_digest }}</code></dd></div>
+      <div><dt>Adapter manifest</dt><dd><code>{{ plan.adapter_manifest_digest }}</code></dd></div>
+      <div><dt>Adapter evidence</dt><dd><code>{{ plan.adapter_evidence_digest }}</code></dd></div>
+      <div><dt>Runtime targets</dt><dd><code>{{ plan.runtime_target_paths_digest }}</code></dd></div>
+    </dl>
+  </section>
+
+  <section class="section" aria-labelledby="changes-title">
+    <div class="section-heading"><h2 id="changes-title">Typed changes</h2><span>{{ plan.changes|length }} changes</span></div>
+    {% for change in plan.changes %}
+      <article class="change-row">
+        <div class="change-summary"><span class="status status-{{ change.change_type }}">{{ change.change_type }}</span><code>{{ change.asset_id }}</code></div>
+        <dl class="change-grid">
+          <div><dt>Before revision</dt><dd><code>{{ change.before_revision or 'None' }}</code></dd></div>
+          <div><dt>After revision</dt><dd><code>{{ change.after_revision or 'None' }}</code></dd></div>
+          <div><dt>Before visibility</dt><dd>{{ change.before_visibility or 'None' }}</dd></div>
+          <div><dt>After visibility</dt><dd>{{ change.after_visibility or 'None' }}</dd></div>
+          <div><dt>Binding</dt><dd><code>{{ change.binding_id or 'None' }}</code></dd></div>
+          <div><dt>Permission delta</dt><dd>{% for permission in change.permission_delta %}<span class="permission">{{ permission }}</span>{% else %}None{% endfor %}</dd></div>
+        </dl>
+      </article>
+    {% else %}<p>No typed changes</p>{% endfor %}
+  </section>
+
+  <section class="section decision-section" aria-labelledby="decision-title">
+    <div class="section-heading"><h2 id="decision-title">Decision</h2></div>
+    {% if approval %}
+      <div class="terminal-decision"><span class="status status-{{ approval.decision }}">{{ approval.decision }}</span><p>{{ approval.reason }}</p><small>{{ approval.approver }} · {{ approval.decided_at }}</small></div>
+    {% elif decision_token %}
+      <form method="post" action="/plans/{{ plan.id }}/decision" class="decision-form">
+        <input type="hidden" name="expected_plan_digest" value="{{ plan.plan_digest }}">
+        <input type="hidden" name="decision_token" value="{{ decision_token }}">
+        <label for="reason">Reason</label>
+        <textarea id="reason" name="reason" required maxlength="500"></textarea>
+        <div class="decision-actions">
+          <button class="button button-approve" type="submit" name="decision" value="approved">Approve</button>
+          <button class="button button-reject" type="submit" name="decision" value="rejected">Reject</button>
+        </div>
+      </form>
+    {% elif decision_unavailable %}<p>Decision controls temporarily unavailable.</p>
+    {% else %}<p>Decision window closed.</p>{% endif %}
+  </section>
+{% endblock %}

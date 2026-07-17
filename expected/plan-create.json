@@ -1,0 +1,13 @@
+[
+  {
+    "change_type": "create",
+    "asset_id": "asset-canary",
+    "before_revision": null,
+    "after_revision": "revision-canary-1",
+    "before_visibility": null,
+    "after_visibility": "private",
+    "binding_id": null,
+    "permission_delta": [],
+    "evidence_refs": []
+  }
+]

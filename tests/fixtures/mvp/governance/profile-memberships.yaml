@@ -1,0 +1,7 @@
+schema_version: "1.0"
+items:
+  - id: membership-canary-default
+    asset_id: asset-canary
+    profile_id: profile-default
+    approved_at: "2026-07-13T00:00:00Z"
+    approval_ref: approval-membership-canary

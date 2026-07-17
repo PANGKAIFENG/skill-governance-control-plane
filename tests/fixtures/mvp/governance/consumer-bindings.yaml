@@ -1,0 +1,9 @@
+schema_version: "1.0"
+items:
+  - id: binding-canary-local-a
+    asset_id: asset-canary
+    target_id: target-local-a
+    consumer_type: project
+    consumer_id: project-canary
+    approved_at: "2026-07-13T00:00:00Z"
+    approval_ref: approval-binding-canary

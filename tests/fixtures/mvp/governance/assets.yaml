@@ -1,0 +1,15 @@
+schema_version: "1.0"
+items:
+  - id: asset-canary
+    name: canary-skill
+    asset_type: skill
+    owner: governance-test
+    visibility: private
+    lifecycle: canonical
+    authority_class: private
+    source_uri: null
+    source_path: authority/canary-skill
+    source_revision: revision-canary-1
+    source_checksum: sha256:canary
+    license_state: internal
+    revision_policy: pinned

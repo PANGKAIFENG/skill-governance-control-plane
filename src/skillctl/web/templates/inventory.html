@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Skill 资产 | Skill 治理门户{% endblock %}
+{% block content %}
+  <div class="page-heading inventory-heading">
+    <div><p class="eyebrow">真实运行态快照</p><h1>Skill 资产</h1>{% if inventory.generated_at %}<p class="timestamp">盘点于 {{ inventory.generated_at }}</p>{% endif %}</div>
+    {% if refresh_token and expected_snapshot_digest %}
+      <form class="refresh-form" method="post" action="/inventory/refresh">
+        <input type="hidden" name="expected_snapshot_digest" value="{{ expected_snapshot_digest }}">
+        <input type="hidden" name="refresh_token" value="{{ refresh_token }}">
+        <button class="control-button" type="submit">重新盘点</button>
+      </form>
+    {% else %}
+      <button class="control-button" type="button" disabled title="当前未装配盘点刷新服务">重新盘点</button>
+    {% endif %}
+  </div>
+
+  {% if refresh_notice %}<p class="relationship-note">{{ refresh_notice }}</p>{% endif %}
+
+  {% if not inventory.available %}
+    <section class="empty-band" aria-label="盘点空状态">
+      <h2>{{ inventory.error_label }}</h2>
+      <p>Portal 不会使用治理 Registry 或测试夹具冒充真实资产。</p>
+    </section>
+  {% else %}
+    <section class="metric-grid inventory-metric-grid" aria-label="运行态盘点指标">
+      <div class="metric"><span>唯一 Skill</span><strong>{{ inventory.unique_skill_count }}</strong></div>
+      <div class="metric"><span>已连接 Agent</span><strong>{{ inventory.connected_agent_count }}</strong></div>
+      <div class="metric"><span>版本不一致</span><strong>{{ inventory.diverged_count }}</strong></div>
+      <div class="metric"><span>仅本地</span><strong>{{ inventory.local_only_count }}</strong></div>
+      <div class="metric"><span>已忽略</span><strong>{{ inventory.ignored_count }}</strong></div>
+    </section>
+
+    {% if inventory.stale_label %}<p class="relationship-note">{{ inventory.stale_label }}</p>{% endif %}
+    {% if inventory.warnings %}
+      <details class="section inventory-warnings" aria-labelledby="warnings-title">
+        <summary><strong id="warnings-title">扫描告警</strong><span>{{ inventory.warning_count }} 项</span></summary>
+        {% for warning in inventory.warnings %}<p class="relationship-note">{{ warning }}</p>{% endfor %}
+      </details>
+    {% endif %}
+
+    <section class="section" aria-labelledby="connections-title">
+      <div class="section-heading"><h2 id="connections-title">目标连接状态</h2><span>Skillshare {{ inventory.skillshare_version }}</span></div>
+      <div class="table-shell inventory-table-shell">
+        <table class="data-table connection-table">
+          <colgroup><col class="target-column"><col class="connection-column"><col class="mode-column"><col class="path-column"></colgroup>
+          <thead><tr><th>目标</th><th>状态</th><th>模式</th><th>路径</th></tr></thead>
+          <tbody>
+            {% for target in inventory.targets %}
+              <tr><td data-label="目标">{{ target.name }}</td><td data-label="状态"><span class="status status-{% if target.readable %}healthy{% else %}unknown{% endif %}">{{ target.connection_label }}</span></td><td data-label="模式">{{ target.mode }}</td><td data-label="路径"><code>{{ target.path }}</code></td></tr>
+            {% endfor %}
+            <tr><td data-label="目标">Multica</td><td data-label="状态"><span class="status status-unknown">尚未连接</span></td><td data-label="模式">-</td><td data-label="路径">-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="assets-title">
+      <div class="section-heading inventory-section-heading"><h2 id="assets-title">资产列表</h2><span>共享源 <code>{{ inventory.source_path }}</code></span></div>
+      <form class="inventory-filters" method="get" action="/" aria-label="Skill 资产筛选">
+        <div class="filter-field filter-search"><label for="inventory-q">名称</label><input id="inventory-q" name="q" value="{{ inventory.filters.q }}" placeholder="搜索 Skill 名称"></div>
+        <div class="filter-field"><label for="inventory-status">状态</label><select id="inventory-status" name="status"><option value="">全部</option>{% for option in inventory.status_options %}<option value="{{ option.value }}" {% if inventory.filters.status == option.value %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+        <div class="filter-field"><label for="inventory-source">来源</label><select id="inventory-source" name="source"><option value="">全部</option>{% for option in inventory.source_options %}<option value="{{ option.value }}" {% if inventory.filters.source == option.value %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+        <div class="filter-field"><label for="inventory-target">目标</label><select id="inventory-target" name="target"><option value="">全部</option>{% for option in inventory.target_options %}<option value="{{ option.value }}" {% if inventory.filters.target == option.value %}selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+        <button class="control-button filter-submit" type="submit">筛选</button>
+      </form>
+      <div class="table-shell inventory-table-shell">
+        <table class="data-table inventory-table">
+          <colgroup><col class="skill-column"><col class="source-column"><col class="coverage-column"><col class="status-column"><col class="time-column"></colgroup>
+          <thead><tr><th>Skill</th><th>来源</th><th>安装覆盖</th><th>状态</th><th>盘点时间</th></tr></thead>
+          <tbody>
+            {% for asset in inventory.assets %}
+              <tr>
+                <td data-label="Skill"><div class="asset-cell-content"><strong class="asset-name">{{ asset.name }}</strong>{% if asset.description %}<small>{{ asset.description }}</small>{% endif %}<details class="instance-details"><summary>查看 {{ asset.instances|length }} 个实例</summary><div class="instance-list">{% for instance in asset.instances %}<div class="instance-row"><strong>{{ instance.location_label }}</strong><span>{{ instance.distribution_mode }} · {{ instance.readable_label }}{% if instance.is_symlink %} · symlink{% endif %}</span><code>{{ instance.path }}</code><code>{{ instance.digest_short }}</code></div>{% endfor %}{% if asset.missing_targets %}<p class="missing-targets">缺失目标：{{ asset.missing_targets|join(', ') }}</p>{% endif %}</div></details></div></td>
+                <td data-label="来源">{{ asset.source_label }}</td>
+                <td data-label="安装覆盖">{{ asset.coverage_label }}</td>
+                <td data-label="状态"><span class="status status-{{ asset.status }}">{{ asset.status_label }}</span></td>
+                <td data-label="盘点时间">{{ inventory.generated_at }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5">没有符合当前筛选条件的 Skill</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section ignored-section" aria-labelledby="ignored-title">
+      <div class="section-heading"><h2 id="ignored-title">已忽略</h2><span>{{ inventory.ignored_count }} 项</span></div>
+      {% for item in inventory.ignored %}<p><strong>{{ item.name }}</strong> · {{ item.reason }}<br><code>{{ item.path }}</code></p>{% else %}<p class="empty-copy">暂无已忽略 Skill</p>{% endfor %}
+    </section>
+  {% endif %}
+{% endblock %}

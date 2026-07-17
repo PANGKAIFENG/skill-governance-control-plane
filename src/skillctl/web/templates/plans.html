@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Plans | Governance Portal{% endblock %}
+{% block content %}
+  <div class="page-heading"><div><p class="eyebrow">Review queue</p><h1>Plans</h1></div><p class="timestamp">{{ rows|length }} total</p></div>
+  <section class="section" aria-labelledby="plans-title">
+    <div class="section-heading"><h2 id="plans-title">Pending and historical</h2></div>
+    <div class="table-shell">
+      <table class="data-table plans-table">
+        <thead><tr><th>Plan</th><th>Operation / target</th><th>Risk</th><th>Policy</th><th>Changes</th><th>Decision</th></tr></thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td data-label="Plan"><a href="/plans/{{ row.plan.id }}"><code>{{ row.plan.id }}</code></a><small>{{ row.plan.created_at }}</small></td>
+              <td data-label="Operation / target">{{ row.plan.operation }}<small><code>{{ row.plan.target_id }}</code></small></td>
+              <td data-label="Risk"><span class="status status-{{ row.plan.risk }}">{{ row.plan.risk }}</span></td>
+              <td data-label="Policy">{{ row.plan.policy_decision }}{% for reason in row.plan.policy_reasons %}<small>{{ reason }}</small>{% endfor %}</td>
+              <td data-label="Changes">{{ row.plan.changes|length }}</td>
+              <td data-label="Decision">{% if row.approval %}<span class="status status-{{ row.approval.decision }}">{{ row.approval.decision }}</span>{% else %}<span class="status status-pending">pending</span>{% endif %}</td>
+            </tr>
+          {% else %}<tr><td colspan="6">No plans awaiting review</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
